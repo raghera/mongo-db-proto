@@ -2,7 +2,6 @@ package com.ravi.mongo;
 
 import com.mongodb.Block;
 import com.mongodb.client.FindIterable;
-import com.ravi.mongo.dao.MongoDao;
 import org.bson.Document;
 
 import java.text.DateFormat;
@@ -13,28 +12,67 @@ import static java.util.Arrays.asList;
 
 public class MongoConnectorApp {
 
-    private static final String COLL_NAME = "restaurants";
+    private static final String COLLECTION_NAME = "restaurants";
 
 
+    public static void main(String[] args) throws Exception {
+        useMongoWithMongoJavaClient();
+    }
 
-    public static void main(String [] args) throws Exception {
-        MongoDao dao = new MongoDao();
+    private static void useMongoWithMongoJavaClient() throws Exception {
+        final com.ravi.mongo.dao.MongoDao dao = new com.ravi.mongo.dao.MongoDao();
 
-        System.out.println(" >>>> " + dao.getCollection(COLL_NAME).count());
+        System.out.println(" >>>> " + dao.getCollection(COLLECTION_NAME).count());
 
-        dao.insertOneDocument(COLL_NAME, buildDocument());
+        dao.insertOneDocument(COLLECTION_NAME, buildDocument());
 
-        System.out.println(" >>>> " + dao.getCollection(COLL_NAME).count());
+        System.out.println(" >>>> " + dao.getCollection(COLLECTION_NAME).count());
 
-
-//        final FindIterable<Document> iterable = dao.findAllDocuments(COLL_NAME);
+//        final FindIterable<Document> iterable = dao.findAllDocuments(COLLECTION_NAME);
 //        printCollection(iterable);
-
-//        final FindIterable<Document> filteredResult = dao.findDocuments(COLL_NAME, buildFilterDoc("borough", "Manhattan"));
+//
+//        final FindIterable<Document> filteredResult = dao.findDocuments(COLLECTION_NAME, buildFilterDoc("borough", "Manhattan"));
 //        printCollection(filteredResult);
 
-        final FindIterable<Document> embeddedResult = dao.findDocuments(COLL_NAME, buildFilterDoc());
-        printCollection(embeddedResult);
+        //find using Filters api (simpler)
+//        final FindIterable<Document> result = dao.findDocumentsUsingFilter(COLLECTION_NAME, "borough", "Manhattan");
+//        printCollection(result);
+
+        //Iterate to check results.
+//        result.forEach(new java.util.function.Consumer<Document>() {
+//            @Override
+//            public void accept(Document document) {
+//                final Object obj = document.get("borough");
+//                if (obj instanceof String && (!((String) obj).equals("Manhattan"))) {
+//                    throw new RuntimeException("A value was not correct from the DB");
+//                }
+//            }
+//        });
+
+//        final FindIterable<Document> embeddedResult = dao.findDocuments(COLLECTION_NAME, buildFilterDoc());
+//        printCollection(embeddedResult);
+
+        //find greater than
+        FindIterable<Document> iterable = dao.findGreaterThan(COLLECTION_NAME, "grades.score",30);
+        iterable.forEach(new Block<Document>() {
+            @Override
+            public void apply(final Document document) {
+//                if(document.containsKey()))
+                System.out.println(document);
+            }
+        });
+
+        //find using multiple params
+//        java.util.Map.Entry<String, String> cuisine = new java.util.AbstractMap.SimpleEntry<String, String>("cuisine", "Italian");
+//        java.util.Map.Entry<String, String> zipcode = new java.util.AbstractMap.SimpleEntry<String, String>("address.zipcode", "10075");
+//
+//        FindIterable<Document> iterable = dao.findCuisineInArea(COLLECTION_NAME, cuisine, zipcode );
+//        printCollection(iterable);
+
+//        iterable.sort(new Document("borough", 1).append("address.zipcode", 1) );//ascending
+        iterable.sort(new Document("borough", -1).append("address.zipcode", -1) );//descending
+        System.out.println(" ============ SORTED ==========");
+        printCollection(iterable);
 
     }
 
@@ -65,14 +103,12 @@ public class MongoConnectorApp {
                         .append("zipcode", "10075")
                         .append("building", "1480")
                         .append("coord", asList(-73.9557413, 40.7720266))
-                .append("borough", "Manhattan")
-                .append("cuisine", "Italian")
-                .append("grades", asList(
-                        new Document()
+                        .append("borough", "Manhattan")
+                        .append("cuisine", "Italian")
+                        .append("grades", asList(new Document()
                                 .append("date", format.parse("2014-10-01T00:00:00Z"))
                                 .append("grade", "A")
-                                .append("score", "11"),
-                        new Document()
+                                .append("score", "11"), new Document()
                                 .append("date", format.parse("2014-01-16T00:00:00Z"))
                                 .append("grade", "B")
                                 .append("score", "17")))
@@ -81,7 +117,5 @@ public class MongoConnectorApp {
 
         return document;
     }
-
-
 
 }

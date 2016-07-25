@@ -2,10 +2,13 @@ package com.ravi.mongo;
 
 import com.mongodb.Block;
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.result.UpdateResult;
+import com.ravi.mongo.dao.MongoDao;
 import org.bson.Document;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Locale;
 
 import static java.util.Arrays.asList;
@@ -14,13 +17,24 @@ public class MongoConnectorApp {
 
     private static final String COLLECTION_NAME = "restaurants";
 
-
     public static void main(String[] args) throws Exception {
         useMongoWithMongoJavaClient();
+        updateSomeRecords();
+
+    }
+
+    private static void updateSomeRecords() {
+        final MongoDao dao = new MongoDao();
+        SimpleEntry<String, String> findParam = new SimpleEntry<>("name", "Juni");
+        SimpleEntry<String, String> updateParam = new SimpleEntry<>("cuisine", "American (New)");
+
+        final UpdateResult result = dao.updateOneRecord(COLLECTION_NAME, findParam, updateParam);
+        System.out.println("Updated Records: " + result.getModifiedCount() );
+
     }
 
     private static void useMongoWithMongoJavaClient() throws Exception {
-        final com.ravi.mongo.dao.MongoDao dao = new com.ravi.mongo.dao.MongoDao();
+        final MongoDao dao = new MongoDao();
 
         System.out.println(" >>>> " + dao.getCollection(COLLECTION_NAME).count());
 
